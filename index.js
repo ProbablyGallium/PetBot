@@ -1,3 +1,4 @@
+// I HATE TYPESCRIPT! I HATE TYPESCRIPT!
 require('dotenv').config()
 const https = require('https');
 const fs = require('fs-extra');
@@ -13,39 +14,32 @@ for (const file of commandFiles) {
 	client.commands.set(command.data.name, command);
 }
 
+//It's occured to me that this thing doesn't...exactly *run* if there's no api.json.
+//...Less I have to check for!
+
 function retrieveAPI() {
-    console.log(`Checking for api.json...`)
     function updateAPI() {
         let file = fs.createWriteStream("api.json");
         let request = https.get("https://superauto.pet/api.json", function(response) {
             response.pipe(file);
         })
     }
-    fs.access('api.json', fs.constants.F_OK, (err) => {
-        if (err) {
-            console.warn("api.json not found! Retrieving from superauto.pet...")
-            updateAPI()
-            console.log('api.json retrieved, continuing...')
-        }
-        else {
-            console.log("Found! Checking against superauto.pet...")
-            let stats = fs.statSync('api.json')
-            let options = {headers: {
-                'If-Modified-Since': new Date(stats.mtime).toUTCString()
-            }}
-            https.get("https://superauto.pet/api.json", options, (res) => {
-                if (res.statusCode == 304) {
-                    console.log("API up to date! Using local copy...")
-                    return;
-                } 
-                else {
-                    console.log("API outdated! Requesting fresh copy...")
-                    updateAPI()
-                }
-            })
-        }
-      }); 
-}
+    let stats = fs.statSync('api.json')
+    let options = {headers: {
+        'If-Modified-Since': new Date(stats.mtime).toUTCString()
+    }}
+    https.get("https://superauto.pet/api.json", options, (res) => {
+        if (res.statusCode == 304) {
+            console.log("API up to date! Using local copy...")
+            return;
+        } 
+            else {
+                console.log("API outdated! Requesting fresh copy...")
+                updateAPI()
+            }
+    })
+}; 
+
 retrieveAPI()
 const petData = require('./api.json')
 
